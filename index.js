@@ -1,8 +1,9 @@
 const express = require('express');
-const { default: mongoose } = require('mongoose');
+const mongoose  = require('mongoose');
 const app = express();
 const User = require('./models/user');
 const bcrypt = require('bcrypt');
+const session = require('express-session');
 
 mongoose.connect('mongodb://localhost:27017/yelpCamp', { useNewUrlParser : true})
 .then(()=>{
@@ -20,6 +21,8 @@ app.get('/',(req,res) => {
 })
 
 app.use(express.urlencoded({ extended : true }));
+app.use(session({secret: 'notagoodsecret'}));
+
 app.get('/register', (req,res)=>{
     res.render('register');
 })
@@ -32,6 +35,7 @@ app.post('/register', async (req,res)=>{
         password:hash
     })
     await user.save();
+    req.session.user_id = user._id;
     res.redirect('/');
 })
 app.get('/login', (req,res) => {
@@ -42,6 +46,8 @@ app.post('/login', async (req,res)=>{
     const user = await User.findOne({username});
     const validPassword = await bcrypt.compare(password, user.password);
     if(validPassword){
+        console.log(user._id);
+        req.session.user_id = user._id;
         res.send("Welcome")
     }
     else {
@@ -49,7 +55,14 @@ app.post('/login', async (req,res)=>{
     }
 })
 app.get('/secret', (req,res) =>{
-    res.send("This is secret!");
+    console.log(req.session._id);
+    if (req.session.user_id){
+        res.send("This is secret!");
+    }
+    console.log("Not working")
+    res.redirect('/login');
+    console.log("Not working")
+    
 })
 
 app.listen(3000, () => {
