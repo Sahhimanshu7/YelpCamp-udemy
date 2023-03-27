@@ -57,14 +57,18 @@ app.post('/login', async (req,res)=>{
 app.get('/secret', (req,res) =>{
     console.log(req.session._id);
     if (req.session.user_id){
-        res.send("This is secret!");
+        return res.render('secret');
     }
     console.log("Not working")
     res.redirect('/login');
     console.log("Not working")
     
 })
-
+app.post('/logout',(req,res)=>{
+    req.session.user_id = null;
+    req.session.destroy();
+    res.redirect('/login');
+})
 app.listen(3000, () => {
     console.log("Serving your app!");
 })
